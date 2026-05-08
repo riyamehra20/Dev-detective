@@ -2,9 +2,9 @@
 
 A sleek, detective-themed GitHub user search app built with **HTML, CSS, and Vanilla JavaScript**. Search any GitHub username and instantly pull their public profile data using the GitHub REST API.
 
-## Live Demo
+## Link 
 
- **[View Live Site](https:/dev-detective-riya.netlify.app)**
+ https://dev-detective-riya.netlify.app
 
 ##  Features
 
