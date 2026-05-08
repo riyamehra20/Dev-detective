@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#0f1923;
+  --navy2:#162030;
+  --navy3:#1e2d40;
+  --blue:#1a3a5c;
+  --sky:#4a9edd;
+  --sky2:#6bb8f7;
+  --gold:#f0a500;
+  --gold2:#ffc53d;
+  --cream:#e8dfc8;
+  --cream2:#f5efe0;
+  --text:#c8d8e8;
+  --muted:#6a8aaa;
+  --red:#e05555;
+  --green:#4ec994;
+  --r:6px;
+}
+
+body{
+  background:var(--navy);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:32px 16px 80px;
+  overflow-x:hidden;
+}
+
+/* Subtle noise texture overlay */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:9999;
+  opacity:0.6;
+}
+
+.wrap{width:100%;max-width:720px;position:relative;z-index:1;}
+
+/* ── HEADER ── */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:40px;
+  animation:slideDown .5s ease both;
+}
+
+.logo{display:flex;align-items:center;gap:14px;}
+
+.badge{
+  width:48px;height:48px;
+  background:var(--gold);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 0 0 4px rgba(240,165,0,.15),0 4px 20px rgba(240,165,0,.25);
+  animation:pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(240,165,0,.15),0 4px 20px rgba(240,165,0,.25)}
+  50%{box-shadow:0 0 0 8px rgba(240,165,0,.08),0 4px 30px rgba(240,165,0,.35)}
+}
+
+.logo-text h1{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:22px;
+  letter-spacing:-.02em;
+  color:var(--cream2);
+  line-height:1;
+}
+
+.logo-text p{
+  font-size:10px;
+  letter-spacing:.18em;
+  color:var(--gold);
+  text-transform:uppercase;
+  margin-top:3px;
+}
+
+.case-num{
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:.1em;
+  text-align:right;
+}
+
+.case-num span{color:var(--sky);font-weight:500;}
+
+/* ── SEARCH ── */
+.search-section{
+  margin-bottom:32px;
+  animation:slideDown .5s .08s ease both;
+}
+
+.search-label{
+  font-size:10px;
+  letter-spacing:.18em;
+  color:var(--gold);
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.search-label::before{content:'//';color:var(--muted);}
+
+.search-row{
+  display:flex;
+  gap:10px;
+  position:relative;
+}
+
+.search-input{
+  flex:1;
+  background:var(--navy2);
+  border:1.5px solid var(--blue);
+  border-radius:var(--r);
+  color:var(--cream2);
+  font-family:'DM Mono',monospace;
+  font-size:15px;
+  padding:15px 20px;
+  outline:none;
+  transition:border-color .25s,box-shadow .25s;
+  caret-color:var(--gold);
+}
+
+.search-input::placeholder{color:var(--muted);font-style:italic;}
+.search-input:focus{
+  border-color:var(--sky);
+  box-shadow:0 0 0 3px rgba(74,158,221,.12);
+}
+
+.search-btn{
+  background:var(--gold);
+  color:var(--navy);
+  border:none;
+  border-radius:var(--r);
+  font-family:'Syne',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:0 28px;
+  cursor:pointer;
+  transition:background .2s,transform .1s,box-shadow .2s;
+  white-space:nowrap;
+  box-shadow:0 4px 16px rgba(240,165,0,.2);
+}
+
+.search-btn:hover{background:var(--gold2);box-shadow:0 6px 24px rgba(240,165,0,.35);}
+.search-btn:active{transform:scale(.97);}
+
+/* ── LOADING ── */
+#loadingState{display:none;text-align:center;padding:64px 0;}
+
+.magnify{
+  font-size:40px;
+  display:block;
+  margin-bottom:16px;
+  animation:swing 1s ease-in-out infinite alternate;
+  transform-origin:top center;
+}
+
+@keyframes swing{from{transform:rotate(-15deg)}to{transform:rotate(15deg)}}
+
+.loading-label{
+  font-size:12px;
+  letter-spacing:.15em;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+
+.dots::after{
+  content:'';
+  animation:dots 1.5s steps(4,end) infinite;
+}
+@keyframes dots{
+  0%{content:''}
+  25%{content:'.'}
+  50%{content:'..'}
+  75%{content:'...'}
+  100%{content:''}
+}
+
+/* ── ERROR ── */
+#errorState{display:none;animation:fadeUp .4s ease both;}
+
+.error-card{
+  background:rgba(224,85,85,.06);
+  border:1.5px solid rgba(224,85,85,.25);
+  border-radius:var(--r);
+  padding:36px;
+  text-align:center;
+}
+
+.error-code{
+  font-family:'Syne',sans-serif;
+  font-size:64px;
+  font-weight:800;
+  color:rgba(224,85,85,.2);
+  line-height:1;
+  margin-bottom:8px;
+}
+
+.error-title{
+  font-family:'Syne',sans-serif;
+  font-size:20px;
+  font-weight:700;
+  color:var(--red);
+  margin-bottom:8px;
+}
+
+.error-msg{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ── EMPTY ── */
+#emptyState{text-align:center;padding:64px 0;animation:fadeUp .5s ease both;}
+
+.empty-desk{
+  display:inline-block;
+  padding:28px 36px;
+  background:var(--navy2);
+  border:1.5px dashed var(--blue);
+  border-radius:var(--r);
+  margin-bottom:20px;
+}
+
+.desk-items{font-size:32px;letter-spacing:8px;}
+
+.empty-hint{
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:.08em;
+}
+
+/* ── PROFILE CARD ── */
+#profileCard{display:none;}
+
+.dossier{
+  background:var(--navy2);
+  border:1.5px solid var(--blue);
+  border-radius:var(--r);
+  overflow:hidden;
+  animation:fadeUp .5s ease both;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+
+/* Folder tab strip */
+.folder-tabs{
+  display:flex;
+  background:var(--navy3);
+  border-bottom:1.5px solid var(--blue);
+  padding:0 24px;
+  gap:0;
+}
+
+.tab{
+  font-size:10px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  padding:10px 16px;
+  color:var(--muted);
+  border-bottom:2px solid transparent;
+  margin-bottom:-1.5px;
+}
+
+.tab.active{
+  color:var(--gold);
+  border-bottom-color:var(--gold);
+}
+
+/* Main dossier body */
+.dossier-body{padding:28px;}
+
+/* Top identity section */
+.identity{
+  display:flex;
+  gap:24px;
+  margin-bottom:28px;
+  align-items:flex-start;
+}
+
+.photo-frame{
+  flex-shrink:0;
+  position:relative;
+}
+
+.photo-frame::before{
+  content:'PHOTO';
+  position:absolute;
+  top:-10px;left:-4px;
+  font-size:8px;
+  letter-spacing:.2em;
+  color:var(--muted);
+  transform:rotate(-90deg);
+  transform-origin:right top;
+}
+
+.avatar-img{
+  width:96px;height:96px;
+  border-radius:4px;
+  border:2px solid var(--blue);
+  display:block;
+  object-fit:cover;
+  background:var(--navy3);
+  filter:sepia(.15) contrast(1.05);
+}
+
+.corner{
+  position:absolute;
+  width:8px;height:8px;
+  border-color:var(--gold);
+  border-style:solid;
+}
+.corner.tl{top:-3px;left:-3px;border-width:2px 0 0 2px;}
+.corner.tr{top:-3px;right:-3px;border-width:2px 2px 0 0;}
+.corner.bl{bottom:-3px;left:-3px;border-width:0 0 2px 2px;}
+.corner.br{bottom:-3px;right:-3px;border-width:0 2px 2px 0;}
+
+.id-info{flex:1;min-width:0;}
+
+.subject-label{
+  font-size:9px;
+  letter-spacing:.2em;
+  color:var(--gold);
+  text-transform:uppercase;
+  margin-bottom:6px;
+  opacity:.8;
+}
+
+.subject-name{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px,4vw,32px);
+  font-weight:800;
+  color:var(--cream2);
+  line-height:1.05;
+  letter-spacing:-.02em;
+  margin-bottom:4px;
+  word-break:break-word;
+}
+
+.subject-handle{
+  font-size:13px;
+  color:var(--sky);
+  margin-bottom:10px;
+}
+
+.subject-bio{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.65;
+  font-style:italic;
+  border-left:2px solid var(--blue);
+  padding-left:12px;
+}
+
+/* Divider */
+.divider{
+  height:1px;
+  background:linear-gradient(90deg,var(--blue),transparent);
+  margin:0 0 24px;
+}
+
+/* Stats strip */
+.stats-strip{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--blue);
+  border:1px solid var(--blue);
+  border-radius:4px;
+  overflow:hidden;
+  margin-bottom:24px;
+}
+
+.stat{
+  background:var(--navy3);
+  padding:18px 12px;
+  text-align:center;
+  position:relative;
+}
+
+.stat-val{
+  font-family:'Syne',sans-serif;
+  font-size:26px;
+  font-weight:800;
+  color:var(--cream2);
+  display:block;
+  line-height:1;
+  margin-bottom:6px;
+}
+
+.stat-label{
+  font-size:9px;
+  letter-spacing:.18em;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+
+/* Field grid */
+.fields{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.field{
+  background:var(--navy3);
+  border:1px solid var(--blue);
+  border-radius:4px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.field-label{
+  font-size:9px;
+  letter-spacing:.2em;
+  color:var(--gold);
+  text-transform:uppercase;
+  opacity:.8;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.field-value{
+  font-size:13px;
+  color:var(--cream);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.field-value a{
+  color:var(--sky2);
+  text-decoration:none;
+}
+.field-value a:hover{text-decoration:underline;}
+
+/* Stamp */
+.stamp-row{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:20px;
+}
+
+.stamp{
+  border:2px solid rgba(78,201,148,.3);
+  border-radius:4px;
+  padding:6px 14px;
+  color:rgba(78,201,148,.5);
+  font-family:'Syne',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  transform:rotate(-2deg);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+@media(max-width:520px){
+  .identity{flex-direction:column;align-items:center;text-align:center;}
+  .subject-bio{border:none;padding:0;}
+  .fields{grid-template-columns:1fr;}
+  .header{flex-direction:column;gap:8px;text-align:center;}
+  .case-num{text-align:center;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="badge">🔍</div>
+      <div class="logo-text">
+        <h1>Dev Detective</h1>
+        <p>GitHub Investigator</p>
+      </div>
+    </div>
+    <div class="case-num">
+      Case File <span>#GH-2025</span><br>
+      Status: <span id="statusText">OPEN</span>
+    </div>
+  </header>
+
+  <!-- SEARCH -->
+  <div class="search-section">
+    <div class="search-label">Identify Subject</div>
+    <div class="search-row">
+      <input
+        id="searchInput"
+        class="search-input"
+        type="text"
+        placeholder="Enter GitHub username..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="search-btn" id="searchBtn">Investigate</button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loadingState">
+    <span class="magnify">🔍</span>
+    <p class="loading-label">Pulling records<span class="dots"></span></p>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorState">
+    <div class="error-card">
+      <div class="error-code" id="errCode">404</div>
+      <div class="error-title" id="errTitle">No Record Found</div>
+      <p class="error-msg" id="errMsg">This subject doesn't appear in our database. Verify the alias and try again.</p>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div id="emptyState">
+    <div class="empty-desk">
+      <div class="desk-items">📂 ☕ 🕵️</div>
+    </div>
+    <p class="empty-hint">// type a username and press Investigate or hit Enter</p>
+  </div>
+
+  <!-- PROFILE DOSSIER -->
+  <div id="profileCard">
+    <div class="dossier">
+      <div class="folder-tabs">
+        <div class="tab active">Profile</div>
+        <div class="tab">Activity</div>
+        <div class="tab">Intel</div>
+      </div>
+      <div class="dossier-body">
+
+        <div class="identity">
+          <div class="photo-frame">
+            <img class="avatar-img" id="avatar" src="" alt="Subject photo" />
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+          </div>
+          <div class="id-info">
+            <div class="subject-label">Subject Identity</div>
+            <div class="subject-name" id="subjectName"></div>
+            <div class="subject-handle" id="subjectHandle"></div>
+            <div class="subject-bio" id="subjectBio"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="stats-strip">
+          <div class="stat">
+            <span class="stat-val" id="statRepos">—</span>
+            <span class="stat-label">Repositories</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val" id="statFollowers">—</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val" id="statFollowing">—</span>
+            <span class="stat-label">Following</span>
+          </div>
+        </div>
+
+        <div class="fields">
+          <div class="field">
+            <div class="field-label">📅 First Seen</div>
+            <div class="field-value" id="fieldJoined">—</div>
+          </div>
+          <div class="field" id="fieldLocWrap">
+            <div class="field-label">📍 Location</div>
+            <div class="field-value" id="fieldLocation">—</div>
+          </div>
+          <div class="field" id="fieldPortWrap">
+            <div class="field-label">🔗 Portfolio</div>
+            <div class="field-value" id="fieldPortfolio">—</div>
+          </div>
+          <div class="field" id="fieldOrgWrap">
+            <div class="field-label">🏢 Organisation</div>
+            <div class="field-value" id="fieldOrg">—</div>
+          </div>
+        </div>
+
+        <div class="stamp-row">
+          <div class="stamp">✓ Verified</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const input = $('searchInput');
+const btn = $('searchBtn');
+
+const panels = ['loadingState','errorState','emptyState','profileCard'];
+
+function show(id){
+  panels.forEach(p => {
+    const el = $(p);
+    el.style.display = p === id ? (p === 'profileCard' ? 'block' : 'block') : 'none';
+  });
+}
+
+function fmt(n){
+  if(n >= 1000) return (n/1000).toFixed(1)+'k';
+  return String(n);
+}
+
+function fmtDate(iso){
+  return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+
+async function investigate(){
+  const username = input.value.trim();
+  if(!username) return;
+
+  show('loadingState');
+  $('statusText').textContent = 'ACTIVE';
+
+  try {
+    const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`);
+
+    if(res.status === 404){
+      $('errCode').textContent = '404';
+      $('errTitle').textContent = 'No Record Found';
+      $('errMsg').textContent = `"${username}" doesn't exist in the GitHub database. Check the alias spelling.`;
+      show('errorState');
+      $('statusText').textContent = 'CLOSED';
+      return;
+    }
+
+    if(!res.ok){
+      $('errCode').textContent = res.status;
+      $('errTitle').textContent = 'API Error';
+      $('errMsg').textContent = `GitHub returned status ${res.status}. Try again in a moment.`;
+      show('errorState');
+      $('statusText').textContent = 'ERROR';
+      return;
+    }
+
+    const u = await res.json();
+
+    $('avatar').src = u.avatar_url;
+    $('subjectName').textContent = u.name || u.login;
+    $('subjectHandle').textContent = `@${u.login}`;
+    $('subjectBio').textContent = u.bio || 'No bio on record.';
+
+    $('statRepos').textContent = fmt(u.public_repos);
+    $('statFollowers').textContent = fmt(u.followers);
+    $('statFollowing').textContent = fmt(u.following);
+
+    $('fieldJoined').textContent = fmtDate(u.created_at);
+    $('fieldLocation').textContent = u.location || 'Unknown';
+
+    const portEl = $('fieldPortfolio');
+    if(u.blog){
+      const url = u.blog.startsWith('http') ? u.blog : 'https://'+u.blog;
+      portEl.innerHTML = `<a href="${url}" target="_blank" rel="noopener">${u.blog.replace(/^https?:\/\//,'').slice(0,28)}</a>`;
+    } else {
+      portEl.textContent = 'None on file';
+    }
+
+    $('fieldOrg').textContent = u.company ? u.company.replace('@','') : 'Independent';
+
+    show('profileCard');
+    $('statusText').textContent = 'RESOLVED';
+
+  } catch(e){
+    $('errCode').textContent = 'ERR';
+    $('errTitle').textContent = 'Connection Failed';
+    $('errMsg').textContent = 'Could not reach GitHub. Check your network and try again.';
+    show('errorState');
+    $('statusText').textContent = 'ERROR';
+  }
+}
+
+btn.addEventListener('click', investigate);
+input.addEventListener('keydown', e => { if(e.key === 'Enter') investigate(); });
+show('emptyState');
+</script>
+</body>
+</html>
